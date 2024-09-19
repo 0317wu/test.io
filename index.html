@@ -1,9 +1,107 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>你好，GitHub</title>
-  </head>
-  <body>
-    <h1>覺得厲害</h1>
-  </body>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自傳</title>
+    <style>
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 36px;
+        }
+        main {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        h2 {
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            color: #4CAF50;
+        }
+        p {
+            line-height: 1.8;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #4CAF50;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+        footer p {
+            margin: 0;
+        }
+        /* 針對行動裝置的響應式設計 */
+        @media (max-width: 768px) {
+            main {
+                margin: 20px 10px;
+                padding: 15px;
+            }
+            header h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>我的介紹</h1>
+    </header>
+
+    <main>
+        <section>
+            <h2>個人簡介</h2>
+            <p>台灣人</p>
+        </section>
+
+        <section>
+            <h2>學歷</h2>
+            <p>高科智商系</p>
+        </section>
+
+        <section>
+            <h2>興趣與專長</h2>
+            <p>喜歡看書</p>
+        </section>
+
+        <section>
+            <h2>目標</h2>
+            <p>學好程式</p>
+        </section>
+
+        <section>
+            <h2>結論</h2>
+            <p>這是一篇介紹文</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2024 我的介紹</p>
+    </footer>
+
+</body>
+</html>
