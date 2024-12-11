@@ -1,4 +1,4 @@
-
+from flask import url_for
 from linebot.models import FlexSendMessage
 
 def create_plan_item(title, description):
@@ -108,13 +108,14 @@ def create_diet_bubble(title, text):
 
 # 初階者飲食方案
 def show_beginner_diet_plan(event, line_bot_api):
+    image_url = url_for('serve_image', filename='beginner_diet.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
         alt_text="👶 初階者飲食方案",
         contents={
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": "https://i.imgur.com/beginner_diet.jpg",  # 替換為有效的圖片URL
+                "url": image_url,  # 替換為有效的圖片URL
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover"
@@ -153,13 +154,14 @@ def show_beginner_diet_plan(event, line_bot_api):
 
 # 中級者飲食方案
 def show_intermediate_diet_plan(event, line_bot_api):
+    image_url = url_for('serve_image', filename='Intermediate_diet.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
         alt_text="💪 中級者飲食方案",
         contents={
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": "https://i.imgur.com/intermediate_diet.jpg",  # 替換為有效的圖片URL
+                "url": image_url,  # 替換為有效的圖片URL
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover"
@@ -198,13 +200,14 @@ def show_intermediate_diet_plan(event, line_bot_api):
 
 # 高級者飲食方案
 def show_advanced_diet_plan(event, line_bot_api):
+    image_url = url_for('serve_image', filename='senior_diet.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
         alt_text="🔥 高級者飲食方案",
         contents={
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": "https://i.imgur.com/advanced_diet.jpg",  # 替換為有效的圖片URL
+                "url": image_url,  # 替換為有效的圖片URL
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover"
@@ -284,13 +287,14 @@ def create_level_bubble(title, text):
 
 # 初學者訓練計劃
 def show_beginner_training_plan(event, line_bot_api):
+    image_url = url_for('serve_image', filename='beginner.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
         alt_text="初學者訓練計劃",
         contents={
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": "https://i.imgur.com/beginner_training.jpg",  # 替換為有效的圖片URL
+                "url": image_url,  # 替換為有效的圖片URL
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover",
@@ -330,13 +334,14 @@ def show_beginner_training_plan(event, line_bot_api):
 
 # 中級者訓練計劃
 def show_intermediate_training_plan(event, line_bot_api):
+    image_url = url_for('serve_image', filename='Intermediate.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
         alt_text="中級者訓練計劃",
         contents={
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": "https://i.imgur.com/intermediate_training.jpg",  # 替換為有效的圖片URL
+                "url": image_url,  # 替換為有效的圖片URL
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover",
@@ -376,13 +381,14 @@ def show_intermediate_training_plan(event, line_bot_api):
 
 # 高級者訓練計劃
 def show_advanced_training_plan(event, line_bot_api):
+    image_url = url_for('serve_image', filename='senior.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
         alt_text="高級者訓練計劃",
         contents={
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": "https://i.imgur.com/advanced_training.jpg",  # 替換為有效的圖片URL
+                "url": image_url,  # 替換為有效的圖片URL
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover",

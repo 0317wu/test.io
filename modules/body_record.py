@@ -1,7 +1,7 @@
 
 import sqlite3
 from datetime import datetime
-from linebot.models import TextSendMessage, TemplateSendMessage, ButtonsTemplate
+from linebot.models import TextSendMessage, TemplateSendMessage, ButtonsTemplate, FlexSendMessage
 
 PAGE_SIZE = 10
 
@@ -12,13 +12,37 @@ def get_db_connection(database):
     return conn
 
 def show_body_record_menu(event, line_bot_api):
-    flex_message = TextSendMessage(
-        text=(
-            "📊 體態紀錄選單\n"
-            "1️⃣ 輸入紀錄\n"
-            "2️⃣ 查詢紀錄\n"
-            "請選擇操作。"
-        )
+    flex_message = FlexSendMessage(
+        alt_text="體態紀錄選單",
+        contents={
+            "type": "bubble",
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "sm",
+                "contents": [
+                    {"type": "text", "text": "📊 體態紀錄", "weight": "bold", "size": "xl"},
+                    {"type": "text", "text": "請選擇您要進行的操作：", "size": "sm", "color": "#555555"}
+                ]
+            },
+            "footer": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "sm",
+                "contents": [
+                    {
+                        "type": "button",
+                        "style": "primary",
+                        "action": {"type": "message", "label": "✍️ 輸入紀錄", "text": "輸入紀錄"}
+                    },
+                    {
+                        "type": "button",
+                        "style": "primary",
+                        "action": {"type": "message", "label": "📚 查詢紀錄", "text": "查詢紀錄"}
+                    }
+                ]
+            }
+        }
     )
     line_bot_api.reply_message(event.reply_token, flex_message)
 

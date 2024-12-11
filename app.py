@@ -1,10 +1,11 @@
 import os
-from flask import Flask, request, abort
+from flask import Flask, request, abort, send_from_directory
 from dotenv import load_dotenv
 from linebot import LineBotApi, WebhookHandler
 from linebot.models import MessageEvent, TextMessage, FollowEvent, TextSendMessage
 
 # 引入模組
+from modules.diet_management import handle_diet_guidance
 from modules.exercise_goal import show_exercise_goal, show_fat_loss_plan, show_muscle_gain_plan, show_cardiovascular_plan
 from modules.body_record import show_body_record_menu, prompt_body_record_input, handle_body_record_input, show_body_records
 from modules.exercise_guidance import show_exercise_guidance, show_diet_guidance_menu, show_training_plan_menu, show_beginner_diet_plan, show_intermediate_diet_plan, show_advanced_diet_plan, show_beginner_training_plan, show_intermediate_training_plan, show_advanced_training_plan
@@ -22,6 +23,10 @@ DATABASE = 'user_body_data.db'
 
 # 儲存使用者狀態
 user_states = {}
+
+@app.route('/img/<filename>')
+def serve_image(filename):
+    return send_from_directory('img', filename)
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -85,6 +90,8 @@ def handle_message(event):
         show_body_records(event, line_bot_api, DATABASE)
     elif user_message == "運動指導":
         show_exercise_guidance(event, line_bot_api)
+    elif user_message == "飲食管理":
+        handle_diet_guidance(event, line_bot_api, DATABASE)
     elif user_message in ["飲食指導", "🍎 飲食指導"]:
         show_diet_guidance_menu(event, line_bot_api)
     elif user_message in ["訓練計劃", "📋 訓練計劃"]:

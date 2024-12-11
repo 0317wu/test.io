@@ -1,4 +1,4 @@
-
+from flask import url_for
 from linebot.models import FlexSendMessage
 
 def show_exercise_goal(event, line_bot_api):
@@ -42,13 +42,14 @@ def create_goal_bubble(title, text):
     }
 
 def show_fat_loss_plan(event, line_bot_api):
+    image_url = url_for('serve_image', filename='fat_loss.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
         alt_text="減脂運動計劃",
         contents={
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": "https://i.imgur.com/fat_loss.jpg",
+                "url": image_url,
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover"
@@ -78,13 +79,14 @@ def show_fat_loss_plan(event, line_bot_api):
     line_bot_api.reply_message(event.reply_token, flex_message)
 
 def show_muscle_gain_plan(event, line_bot_api):
+    image_url = url_for('serve_image', filename='Build_muscle.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
         alt_text="增肌運動計劃",
         contents={
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": "https://i.imgur.com/muscle_gain.jpg",
+                "url": image_url,
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover"
@@ -114,13 +116,14 @@ def show_muscle_gain_plan(event, line_bot_api):
     line_bot_api.reply_message(event.reply_token, flex_message)
 
 def show_cardiovascular_plan(event, line_bot_api):
+    image_url = url_for('serve_image', filename="Improve_cardiopulmonary.jpeg", _external=True, _scheme='https')
     flex_message = FlexSendMessage(
         alt_text="提高心肺功能計劃",
         contents={
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": "https://i.imgur.com/cardiovascular.jpg",
+                "url": image_url,
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover"
