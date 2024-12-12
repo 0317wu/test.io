@@ -13,7 +13,7 @@ def create_plan_item(title, description):
                 "size": "sm",
                 "color": "#555555",
                 "flex": 1,
-                "wrap": True  # 允許換行
+                "wrap": True
             },
             {
                 "type": "text",
@@ -21,7 +21,7 @@ def create_plan_item(title, description):
                 "size": "sm",
                 "color": "#111111",
                 "flex": 5,
-                "wrap": True  # 允許換行
+                "wrap": True
             }
         ]
     }
@@ -34,7 +34,6 @@ def show_exercise_guidance(event, line_bot_api):
             "contents": [
                 create_guidance_bubble("🍎 飲食指導", "飲食指導"),
                 create_guidance_bubble("📋 訓練計劃", "訓練計劃"),
-                create_guidance_bubble("🔙 返回", "返回")
             ]
         }
     )
@@ -65,7 +64,6 @@ def create_guidance_bubble(title, text):
         }
     }
 
-# 顯示飲食指導選單（初階者、中級者、高級者）
 def show_diet_guidance_menu(event, line_bot_api):
     flex_message = FlexSendMessage(
         alt_text="飲食指導選單",
@@ -75,7 +73,6 @@ def show_diet_guidance_menu(event, line_bot_api):
                 create_diet_bubble("👶 初階者飲食方案", "初階者飲食方案"),
                 create_diet_bubble("💪 中級者飲食方案", "中級者飲食方案"),
                 create_diet_bubble("🔥 高級者飲食方案", "高級者飲食方案"),
-                create_diet_bubble("🔙 返回", "返回")
             ]
         }
     )
@@ -106,7 +103,6 @@ def create_diet_bubble(title, text):
         }
     }
 
-# 初階者飲食方案
 def show_beginner_diet_plan(event, line_bot_api):
     image_url = url_for('serve_image', filename='beginner_diet.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
@@ -115,7 +111,7 @@ def show_beginner_diet_plan(event, line_bot_api):
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": image_url,  # 替換為有效的圖片URL
+                "url": image_url,
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover"
@@ -123,7 +119,7 @@ def show_beginner_diet_plan(event, line_bot_api):
             "body": {
                 "type": "box",
                 "layout": "vertical",
-                "spacing": "sm",  # 減少間距
+                "spacing": "sm",
                 "contents": [
                     {"type": "text", "text": "👶 初階者飲食方案", "weight": "bold", "size": "xl"},
                     {"type": "text", "text": "開始您的健身之旅，以下是適合初階者的飲食建議：", "size": "sm", "color": "#555555"},
@@ -139,20 +135,11 @@ def show_beginner_diet_plan(event, line_bot_api):
                         ]
                     }
                 ]
-            },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "sm",
-                "contents": [
-                    {"type": "button", "style": "link", "action": {"type": "message", "label": "🔙 返回選擇", "text": "飲食指導"}}
-                ]
             }
         }
     )
     line_bot_api.reply_message(event.reply_token, flex_message)
 
-# 中級者飲食方案
 def show_intermediate_diet_plan(event, line_bot_api):
     image_url = url_for('serve_image', filename='Intermediate_diet.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
@@ -161,7 +148,7 @@ def show_intermediate_diet_plan(event, line_bot_api):
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": image_url,  # 替換為有效的圖片URL
+                "url": image_url,
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover"
@@ -169,7 +156,7 @@ def show_intermediate_diet_plan(event, line_bot_api):
             "body": {
                 "type": "box",
                 "layout": "vertical",
-                "spacing": "sm",  # 減少間距
+                "spacing": "sm",
                 "contents": [
                     {"type": "text", "text": "💪 中級者飲食方案", "weight": "bold", "size": "xl"},
                     {"type": "text", "text": "提升您的飲食管理，以下是適合中級者的飲食建議：", "size": "sm", "color": "#555555"},
@@ -185,20 +172,11 @@ def show_intermediate_diet_plan(event, line_bot_api):
                         ]
                     }
                 ]
-            },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "sm",
-                "contents": [
-                    {"type": "button", "style": "link", "action": {"type": "message", "label": "🔙 返回選擇", "text": "飲食指導"}}
-                ]
             }
         }
     )
     line_bot_api.reply_message(event.reply_token, flex_message)
 
-# 高級者飲食方案
 def show_advanced_diet_plan(event, line_bot_api):
     image_url = url_for('serve_image', filename='senior_diet.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
@@ -207,7 +185,7 @@ def show_advanced_diet_plan(event, line_bot_api):
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": image_url,  # 替換為有效的圖片URL
+                "url": image_url,
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover"
@@ -215,7 +193,7 @@ def show_advanced_diet_plan(event, line_bot_api):
             "body": {
                 "type": "box",
                 "layout": "vertical",
-                "spacing": "sm",  # 減少間距
+                "spacing": "sm",
                 "contents": [
                     {"type": "text", "text": "🔥 高級者飲食方案", "weight": "bold", "size": "xl"},
                     {"type": "text", "text": "達到最佳健身狀態，以下是適合高級者的飲食建議：", "size": "sm", "color": "#555555"},
@@ -231,20 +209,11 @@ def show_advanced_diet_plan(event, line_bot_api):
                         ]
                     }
                 ]
-            },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "sm",
-                "contents": [
-                    {"type": "button", "style": "link", "action": {"type": "message", "label": "🔙 返回選擇", "text": "飲食指導"}}
-                ]
             }
         }
     )
     line_bot_api.reply_message(event.reply_token, flex_message)
 
-# 顯示訓練計劃選單（初學者、中級者、高級者）
 def show_training_plan_menu(event, line_bot_api):
     flex_message = FlexSendMessage(
         alt_text="訓練計劃選單",
@@ -254,7 +223,6 @@ def show_training_plan_menu(event, line_bot_api):
                 create_level_bubble("👶 初學者", "初學者訓練計劃"),
                 create_level_bubble("💪 中級者", "中級者訓練計劃"),
                 create_level_bubble("🔥 高級者", "高級者訓練計劃"),
-                create_level_bubble("🔙 返回", "返回")
             ]
         }
     )
@@ -285,7 +253,6 @@ def create_level_bubble(title, text):
         }
     }
 
-# 初學者訓練計劃
 def show_beginner_training_plan(event, line_bot_api):
     image_url = url_for('serve_image', filename='beginner.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
@@ -294,7 +261,7 @@ def show_beginner_training_plan(event, line_bot_api):
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": image_url,  # 替換為有效的圖片URL
+                "url": image_url,
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover",
@@ -303,7 +270,7 @@ def show_beginner_training_plan(event, line_bot_api):
             "body": {
                 "type": "box",
                 "layout": "vertical",
-                "spacing": "sm",  # 減少間距
+                "spacing": "sm",
                 "contents": [
                     {"type": "text", "text": "👶 初學者訓練計劃", "weight": "bold", "size": "xl"},
                     {"type": "text", "text": "逐步建立基礎，啟動您的健身之旅。", "size": "sm", "color": "#555555"},
@@ -319,20 +286,11 @@ def show_beginner_training_plan(event, line_bot_api):
                         ]
                     }
                 ]
-            },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "sm",
-                "contents": [
-                    {"type": "button", "style": "link", "action": {"type": "message", "label": "🔙 返回選擇", "text": "返回"}}
-                ]
             }
         }
     )
     line_bot_api.reply_message(event.reply_token, flex_message)
 
-# 中級者訓練計劃
 def show_intermediate_training_plan(event, line_bot_api):
     image_url = url_for('serve_image', filename='Intermediate.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
@@ -341,7 +299,7 @@ def show_intermediate_training_plan(event, line_bot_api):
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": image_url,  # 替換為有效的圖片URL
+                "url": image_url,
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover",
@@ -350,7 +308,7 @@ def show_intermediate_training_plan(event, line_bot_api):
             "body": {
                 "type": "box",
                 "layout": "vertical",
-                "spacing": "sm",  # 減少間距
+                "spacing": "sm",
                 "contents": [
                     {"type": "text", "text": "💪 中級者訓練計劃", "weight": "bold", "size": "xl"},
                     {"type": "text", "text": "提升您的健身水平，挑戰更高強度。", "size": "sm", "color": "#555555"},
@@ -366,20 +324,11 @@ def show_intermediate_training_plan(event, line_bot_api):
                         ]
                     }
                 ]
-            },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "sm",
-                "contents": [
-                    {"type": "button", "style": "link", "action": {"type": "message", "label": "🔙 返回選擇", "text": "返回"}}
-                ]
             }
         }
     )
     line_bot_api.reply_message(event.reply_token, flex_message)
 
-# 高級者訓練計劃
 def show_advanced_training_plan(event, line_bot_api):
     image_url = url_for('serve_image', filename='senior.jpeg', _external=True, _scheme='https')
     flex_message = FlexSendMessage(
@@ -388,7 +337,7 @@ def show_advanced_training_plan(event, line_bot_api):
             "type": "bubble",
             "hero": {
                 "type": "image",
-                "url": image_url,  # 替換為有效的圖片URL
+                "url": image_url,
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover",
@@ -397,7 +346,7 @@ def show_advanced_training_plan(event, line_bot_api):
             "body": {
                 "type": "box",
                 "layout": "vertical",
-                "spacing": "sm",  # 減少間距
+                "spacing": "sm",
                 "contents": [
                     {"type": "text", "text": "🔥 高級者訓練計劃", "weight": "bold", "size": "xl"},
                     {"type": "text", "text": "挑戰自我，達到最佳狀態。", "size": "sm", "color": "#555555"},
@@ -412,14 +361,6 @@ def show_advanced_training_plan(event, line_bot_api):
                             create_plan_item("高級核心訓練", "俄羅斯轉體、懸空腿舉，每個動作4組，每組20次")
                         ]
                     }
-                ]
-            },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "sm",
-                "contents": [
-                    {"type": "button", "style": "link", "action": {"type": "message", "label": "🔙 返回選擇", "text": "返回"}}
                 ]
             }
         }

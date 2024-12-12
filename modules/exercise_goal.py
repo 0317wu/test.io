@@ -10,7 +10,6 @@ def show_exercise_goal(event, line_bot_api):
                 create_goal_bubble("🏃‍♂️ 減脂", "減脂"),
                 create_goal_bubble("🏋️‍♂️ 增肌", "增肌"),
                 create_goal_bubble("🏃‍♀️ 提高心肺功能", "提高心肺功能"),
-                create_goal_bubble("🔙 返回", "返回")
             ]
         }
     )
@@ -66,13 +65,6 @@ def show_fat_loss_plan(event, line_bot_api):
                         create_plan_item("飲食管理", "低卡高蛋白飲食")
                     ]}
                 ]
-            },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "contents": [
-                    {"type": "button", "style": "link", "action": {"type": "message", "label": "🔙 返回選擇", "text": "返回"}}
-                ]
             }
         }
     )
@@ -103,13 +95,6 @@ def show_muscle_gain_plan(event, line_bot_api):
                         create_plan_item("高強度運動", "短時間高強度訓練")
                     ]}
                 ]
-            },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "contents": [
-                    {"type": "button", "style": "link", "action": {"type": "message", "label": "🔙 返回選擇", "text": "返回"}}
-                ]
             }
         }
     )
@@ -139,13 +124,6 @@ def show_cardiovascular_plan(event, line_bot_api):
                         create_plan_item("游泳", "增強耐力，每次45分鐘，每週2次"),
                         create_plan_item("交替運動", "強度不一的運動組合")
                     ]}
-                ]
-            },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "contents": [
-                    {"type": "button", "style": "link", "action": {"type": "message", "label": "🔙 返回選擇", "text": "返回"}}
                 ]
             }
         }
