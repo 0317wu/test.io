@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, abort, send_from_directory
 from dotenv import load_dotenv
 from linebot import LineBotApi, WebhookHandler
-from linebot.models import MessageEvent, TextMessage, FollowEvent, TextSendMessage
+from linebot.models import MessageEvent, TextMessage, FollowEvent, TextSendMessage, LocationMessage
 
 # 引入模組
 from modules.diet_management import handle_diet_guidance
@@ -110,6 +110,13 @@ def handle_message(event):
         show_advanced_training_plan(event, line_bot_api)
     else:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ 未知的選項，請重新輸入。"))
+@handler.add(MessageEvent, message=LocationMessage)
+def handle_location_message(event):
+    gym_search_url = "https://www.google.com/maps/search/?api=1&query=gym"
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=f"你可以在這裡找到附近的健身房: {gym_search_url}")
+    )
 
 if __name__ == "__main__":
     # 建議在生產環境中使用 gunicorn 或其他更安全的服務器
