@@ -7,8 +7,15 @@ from linebot.models import MessageEvent, TextMessage, FollowEvent, TextSendMessa
 # 引入模組
 from modules.diet_management import handle_diet_guidance
 from modules.exercise_goal import show_exercise_goal, show_fat_loss_plan, show_muscle_gain_plan, show_cardiovascular_plan
-from modules.body_record import show_body_record_menu, prompt_body_record_input, handle_body_record_input, show_body_records
-from modules.exercise_guidance import show_exercise_guidance, show_diet_guidance_menu, show_training_plan_menu, show_beginner_diet_plan, show_intermediate_diet_plan, show_advanced_diet_plan, show_beginner_training_plan, show_intermediate_training_plan, show_advanced_training_plan
+from modules.body_record import (
+    show_body_record_menu, prompt_body_record_input, handle_body_record_input,
+    show_body_records, handle_body_record_pagination  # 新增 handle_body_record_pagination
+)
+from modules.exercise_guidance import (
+    show_exercise_guidance, show_diet_guidance_menu, show_training_plan_menu,
+    show_beginner_diet_plan, show_intermediate_diet_plan, show_advanced_diet_plan,
+    show_beginner_training_plan, show_intermediate_training_plan, show_advanced_training_plan
+)
 
 # 載入環境變數
 load_dotenv()
@@ -53,7 +60,7 @@ def handle_message(event):
     user_id = event.source.user_id
     user_message = event.message.text.strip()
 
-    # 處理「體態紀錄」相關的狀態
+    # 若使用者有狀態
     if user_id in user_states:
         state = user_states[user_id]
         if state.get('state') == 'awaiting_body_record_input':
@@ -64,7 +71,7 @@ def handle_message(event):
             try:
                 weight, height = map(float, user_message.split())
                 handle_body_record_input(event, line_bot_api, DATABASE, weight, height)
-                del user_states[user_id]  # 清除狀態
+                del user_states[user_id]
             except ValueError:
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ 請按照正確格式輸入，例如：80 180"))
             return
@@ -73,6 +80,7 @@ def handle_message(event):
     if user_message == "開始":
         main_menu = "🏋️‍♂️ 主選單：\n1️⃣ 運動目標\n2️⃣ 體態紀錄\n3️⃣ 運動指導\n請輸入對應選項。"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=main_menu))
+
     elif user_message == "運動目標":
         show_exercise_goal(event, line_bot_api)
     elif user_message == "減脂":
@@ -81,13 +89,22 @@ def handle_message(event):
         show_muscle_gain_plan(event, line_bot_api)
     elif user_message == "提高心肺功能":
         show_cardiovascular_plan(event, line_bot_api)
+
     elif user_message == "體態紀錄":
         show_body_record_menu(event, line_bot_api)
     elif user_message == "輸入紀錄":
         user_states[user_id] = {'state': 'awaiting_body_record_input'}
         prompt_body_record_input(event, line_bot_api)
     elif user_message == "查詢紀錄":
-        show_body_records(event, line_bot_api, DATABASE)
+        # 顯示第一頁紀錄，並在 show_body_records 中設定狀態
+        show_body_records(event, line_bot_api, DATABASE, page=1, user_states=user_states)
+
+    # 新增對「上一頁 / 下一頁」指令的處理
+    elif user_message == "體態紀錄上一頁":
+        handle_body_record_pagination(event, "上一頁", line_bot_api, user_states, DATABASE)
+    elif user_message == "體態紀錄下一頁":
+        handle_body_record_pagination(event, "下一頁", line_bot_api, user_states, DATABASE)
+
     elif user_message == "運動指導":
         show_exercise_guidance(event, line_bot_api)
     elif user_message == "飲食管理":
@@ -110,6 +127,7 @@ def handle_message(event):
         show_advanced_training_plan(event, line_bot_api)
     else:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ 未知的選項，請重新輸入。"))
+
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location_message(event):
     gym_search_url = "https://www.google.com/maps/search/?api=1&query=gym"
@@ -119,5 +137,4 @@ def handle_location_message(event):
     )
 
 if __name__ == "__main__":
-    # 建議在生產環境中使用 gunicorn 或其他更安全的服務器
     app.run(host="0.0.0.0", port=5000)

@@ -1,11 +1,10 @@
-
+# modules/body_record.py
 import sqlite3
 from datetime import datetime
 from linebot.models import TextSendMessage, TemplateSendMessage, ButtonsTemplate, FlexSendMessage
 
 PAGE_SIZE = 10
 
-# 資料庫連接上下文管理器
 def get_db_connection(database):
     conn = sqlite3.connect(database)
     conn.row_factory = sqlite3.Row
@@ -62,7 +61,6 @@ def handle_body_record_input(event, line_bot_api, database, weight, height):
     bmi = weight / (height_m ** 2)
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # 儲存到資料庫
     with get_db_connection(database) as conn:
         c = conn.cursor()
         c.execute('''INSERT INTO body_data (user_id, weight, height, bmi, time)
@@ -70,7 +68,6 @@ def handle_body_record_input(event, line_bot_api, database, weight, height):
                   (user_id, weight, height, bmi, current_time))
         conn.commit()
 
-    # 回應當筆紀錄
     reply_message = (
         f"✅ 體態紀錄成功！\n"
         f"📅 記錄時間：{current_time}\n"
@@ -80,7 +77,7 @@ def handle_body_record_input(event, line_bot_api, database, weight, height):
     )
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
-def show_body_records(event, line_bot_api, database, page=1):
+def show_body_records(event, line_bot_api, database, page=1, user_states=None):
     user_id = event.source.user_id
     offset = (page - 1) * PAGE_SIZE
     with get_db_connection(database) as conn:
@@ -99,20 +96,23 @@ def show_body_records(event, line_bot_api, database, page=1):
         reply_message += (
             f"• 第 {idx} 條紀錄：\n"
             f"  ⏰ 時間: {record['time']} \n"
-            f"  ⚖️ 體重: {record['weight']} kg \n"
-            f"  📏 身高: {record['height']} cm \n"
+            f"  ⚖️ 體重: {record['weight']} kg\n"
+            f"  📏 身高: {record['height']} cm\n"
             f"  📊 BMI: {record['bmi']:.2f}\n\n"
         )
 
-    # 計算總頁數
     total_pages = (total_records + PAGE_SIZE - 1) // PAGE_SIZE
 
-    # 按鈕模板
+    # 建立分頁按鈕
     actions = []
     if page > 1:
         actions.append({"type": "message", "label": "⬅️ 上一頁", "text": "體態紀錄上一頁"})
     if page < total_pages:
         actions.append({"type": "message", "label": "下一頁 ➡️", "text": "體態紀錄下一頁"})
+
+    # 若提供了 user_states，將使用者狀態設定為瀏覽紀錄狀態
+    if user_states is not None:
+        user_states[user_id] = {'state': 'viewing_body_records', 'page': page}
 
     if actions:
         buttons_template = TemplateSendMessage(
@@ -125,3 +125,26 @@ def show_body_records(event, line_bot_api, database, page=1):
         line_bot_api.reply_message(event.reply_token, [TextSendMessage(text=reply_message), buttons_template])
     else:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+
+def handle_body_record_pagination(event, direction, line_bot_api, user_states, database):
+    user_id = event.source.user_id
+    if user_id not in user_states:
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ 無法找到您的紀錄狀態。"))
+        return
+
+    state = user_states[user_id]
+    if state.get('state') != 'viewing_body_records':
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ 您目前沒有瀏覽紀錄。"))
+        return
+
+    current_page = state.get('page', 1)
+    if direction == "上一頁" and current_page > 1:
+        new_page = current_page - 1
+    elif direction == "下一頁":
+        new_page = current_page + 1
+    else:
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ 沒有更多的頁面。"))
+        return
+
+    # 顯示新頁的紀錄
+    show_body_records(event, line_bot_api, database, page=new_page, user_states=user_states)
