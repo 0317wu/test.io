@@ -1,7 +1,6 @@
-import json
 import os
 from dotenv import load_dotenv
-from linebot import LineBotApi, WebhookHandler
+from linebot import LineBotApi
 from linebot.exceptions import LineBotApiError
 
 load_dotenv()

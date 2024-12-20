@@ -2,7 +2,7 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
-from linebot import LineBotApi, WebhookHandler
+from linebot import LineBotApi
 
 load_dotenv()
 
@@ -26,8 +26,12 @@ rich_menu_id = json.loads(req.text)['richMenuId']
 if not rich_menu_id:
     raise ValueError("richMenuId not found in response")
 
-with open("richMenu.png", 'rb') as img:
-    line_bot_api.set_rich_menu_image(rich_menu_id, "image/jpeg", img)
+with open("richMenu.png", "rb") as img:
+    try:
+        line_bot_api.set_rich_menu_image(rich_menu_id, "image/png", img)
+        print("Image uploaded successfully!")
+    except Exception as e:
+        print("Error uploading image:", e)
 
 start_rich_menu = requests.request('POST', f'https://api.line.me/v2/bot/user/all/richmenu/{rich_menu_id}', headers=headers)
 
