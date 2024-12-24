@@ -60,9 +60,9 @@ def show_fat_loss_plan(event, line_bot_api):
                     {"type": "text", "text": "🏃‍♂️ 減脂運動計劃", "weight": "bold", "size": "xl"},
                     {"type": "text", "text": "以下是針對減脂的運動計劃：", "size": "sm", "color": "#555555"},
                     {"type": "box", "layout": "vertical", "contents": [
-                        create_plan_item("有氧運動", "跑步或游泳，每次30分鐘，每週3次"),
+                        create_plan_item("運動", "跑步或游泳，每次30分鐘，每週3次"),
                         create_plan_item("重訓", "全身性訓練，每個動作3組，每組12次"),
-                        create_plan_item("飲食管理", "低卡高蛋白飲食")
+                        create_plan_item("飲食", "低卡高蛋白飲食")
                     ]}
                 ]
             }
@@ -91,8 +91,8 @@ def show_muscle_gain_plan(event, line_bot_api):
                     {"type": "text", "text": "以下是針對增肌的運動計劃：", "size": "sm", "color": "#555555"},
                     {"type": "box", "layout": "vertical", "contents": [
                         create_plan_item("重訓", "專注於力量訓練，每個動作4組，每組10次"),
-                        create_plan_item("高蛋白飲食", "增加蛋白質攝取"),
-                        create_plan_item("高強度運動", "短時間高強度訓練")
+                        create_plan_item("飲食", "增加蛋白質攝取"),
+                        create_plan_item("運動", "短時間高強度訓練")
                     ]}
                 ]
             }
@@ -120,9 +120,9 @@ def show_cardiovascular_plan(event, line_bot_api):
                     {"type": "text", "text": "🏃‍♀️ 提高心肺功能計劃", "weight": "bold", "size": "xl"},
                     {"type": "text", "text": "以下是針對心肺功能的運動計劃：", "size": "sm", "color": "#555555"},
                     {"type": "box", "layout": "vertical", "contents": [
-                        create_plan_item("有氧運動", "跑步或騎車，每次30分鐘，每週3次"),
+                        create_plan_item("有氧", "跑步或騎車，每次30分鐘，每週3次"),
                         create_plan_item("游泳", "增強耐力，每次45分鐘，每週2次"),
-                        create_plan_item("交替運動", "強度不一的運動組合")
+                        create_plan_item("運動", "強度不一的運動組合")
                     ]}
                 ]
             }

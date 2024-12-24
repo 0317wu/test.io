@@ -77,6 +77,7 @@ def handle_message(event):
             return
 
     # 根據使用者輸入呼叫對應功能
+    
     if user_message == "開始":
         main_menu = "🏋️‍♂️ 主選單：\n1️⃣ 運動目標\n2️⃣ 體態紀錄\n3️⃣ 運動指導\n請輸入對應選項。"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=main_menu))
