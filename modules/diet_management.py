@@ -1,23 +1,20 @@
 from linebot.models import FlexSendMessage, TextSendMessage
-import sqlite3
 import random
+import sqlite3
 
-# 用來儲存用戶的狀態（例如是否正在進行飲食管理）
 user_states = {}
 
-# 連接資料庫的函式
+
 def get_db_connection(database):
     conn = sqlite3.connect(database)
     conn.row_factory = sqlite3.Row
     return conn
 
-# 計算 BMI
 def calculate_bmi(weight, height_cm):
     height_m = height_cm / 100
     bmi = weight / (height_m ** 2)
     return bmi
 
-# 根據 BMI 推薦每日菜單
 def recommend_daily_menu(bmi):
     menus = {
         "underweight": {
@@ -203,7 +200,7 @@ def recommend_daily_menu(bmi):
         
         },
         "overweight": {
-            "早餐": [
+            "breakfast": [
                 "低脂優格 + 蘋果片 + 水煮蛋",
                 "全麥吐司 + 牛油果 + 水煮蛋",
                 "蔬菜燕麥粥 + 堅果",
@@ -225,7 +222,7 @@ def recommend_daily_menu(bmi):
                 "牛油果吐司 + 水煮蛋",
                 "牛奶煎餅 + 蜂蜜"
             ],
-            "午餐": [
+            "lunch": [
                 "烤雞胸肉 + 蔬菜沙拉 + 糙米飯",
                 "蒸魚 + 地瓜 + 時令蔬菜湯",
                 "豆腐蔬菜炒飯 + 湯",
@@ -247,7 +244,7 @@ def recommend_daily_menu(bmi):
                 "雞肉菠菜義大利麵 + 蔬菜湯",
                 "鯛魚定食 + 味噌湯"
             ],
-            "晚餐": [
+            "dinner": [
                 "蒸魚 + 地瓜 + 時令蔬菜湯",
                 "烤雞胸肉 + 蔬菜沙拉 + 糙米飯",
                 "蔬菜豆腐鍋 + 藜麥",
@@ -269,7 +266,7 @@ def recommend_daily_menu(bmi):
                 "燉雞肉 + 藜麥沙拉",
                 "蔬菜焗飯 + 混合蔬菜"
             ],
-            "加餐": [
+            "snack": [
                 "優格 + 堅果",
                 "水果沙拉 + 低脂優格",
                 "蔬菜棒配鷹嘴豆泥",
@@ -293,7 +290,7 @@ def recommend_daily_menu(bmi):
             ]
         },
         "obese": {
-              "早餐": [
+              "breakfast": [
                 "低脂優格 + 蘋果片 + 水煮蛋",
                 "全麥吐司 + 牛油果 + 水煮蛋",
                 "蔬菜燕麥粥 + 堅果",
@@ -315,7 +312,7 @@ def recommend_daily_menu(bmi):
                 "牛油果吐司 + 水煮蛋",
                 "牛奶煎餅 + 蜂蜜"
             ],
-            "午餐": [
+            "lunch": [
                 "烤雞胸肉 + 蔬菜沙拉 + 糙米飯",
                 "蒸魚 + 地瓜 + 時令蔬菜湯",
                 "豆腐蔬菜炒飯 + 湯",
@@ -337,7 +334,7 @@ def recommend_daily_menu(bmi):
                 "雞肉菠菜義大利麵 + 蔬菜湯",
                 "鯛魚定食 + 味噌湯"
             ],
-            "晚餐": [
+            "dinner": [
                 "蒸魚 + 地瓜 + 時令蔬菜湯",
                 "烤雞胸肉 + 蔬菜沙拉 + 糙米飯",
                 "蔬菜豆腐鍋 + 藜麥",
@@ -359,7 +356,7 @@ def recommend_daily_menu(bmi):
                 "燉雞肉 + 藜麥沙拉",
                 "蔬菜焗飯 + 混合蔬菜"
             ],
-            "加餐": [
+            "snack": [
                 "優格 + 堅果",
                 "水果沙拉 + 低脂優格",
                 "蔬菜棒配鷹嘴豆泥",
@@ -384,7 +381,7 @@ def recommend_daily_menu(bmi):
         }
     
     }
-    # 根據 BMI 分類
+
     if bmi < 18.5:
         category = "underweight"
     elif 18.5 <= bmi < 24:
@@ -399,31 +396,16 @@ def recommend_daily_menu(bmi):
         for meal, options in menus[category].items()
     }
 
-    menu = [
-        f"🥗 **每日菜單建議（{'體重過輕' if category == 'underweight' else '正常體重' if category == 'normal' else '過重' if category == 'overweight' else '肥胖'}）**",
-        f"• 早餐：{selected_menu['breakfast']}",
-        f"• 午餐：{selected_menu['lunch']}",
-        f"• 晚餐：{selected_menu['dinner']}",
+    menu = (
+        f"🥗 **每日菜單建議（{'體重過輕' if category == 'underweight' else '正常體重' if category == 'normal' else '過重' if category == 'overweight' else '肥胖'}）**\n"
+        f"• 早餐：{selected_menu['breakfast']}\n"
+        f"• 午餐：{selected_menu['lunch']}\n"
+        f"• 晚餐：{selected_menu['dinner']}\n"
         f"• 點心：{selected_menu['snack']}"
-    ]
-    
-    # 使用 FlexSendMessage 發送格式化的每日菜單
-    contents = {
-        "type": "bubble",
-        "body": {
-            "type": "box",
-            "layout": "vertical",
-            "spacing": "sm",
-            "contents": [
-                {"type": "text", "text": "每日菜單建議", "weight": "bold", "size": "xl"},
-                *[{"type": "text", "text": item, "size": "sm", "color": "#555555"} for item in menu]
-            ]
-        }
-    }
+    )
+    return menu
 
-    return FlexSendMessage(alt_text="每日菜單建議", contents=contents)
-
-# 處理飲食指導的主函式
+# 處理飲食指導
 def handle_diet_guidance(event, line_bot_api, database):
     user_id = event.source.user_id
 
@@ -435,8 +417,12 @@ def handle_diet_guidance(event, line_bot_api, database):
 
     if record:
         bmi = record['bmi']
-        flex_message = recommend_daily_menu(bmi)  # 獲取 Flex 訊息
-        line_bot_api.reply_message(event.reply_token, flex_message)
+        daily_menu = recommend_daily_menu(bmi)
+        reply_message = (
+            f"📊 您的 BMI：{bmi:.2f}\n"
+            f"🍽️ 每日菜單建議：\n{daily_menu}"
+        )
     else:
         reply_message = "❌ 請先進行體態紀錄。"
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
