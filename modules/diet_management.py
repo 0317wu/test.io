@@ -1,20 +1,23 @@
 from linebot.models import FlexSendMessage, TextSendMessage
-import random
 import sqlite3
+import random
 
+# 用來儲存用戶的狀態（例如是否正在進行飲食管理）
 user_states = {}
 
-
+# 連接資料庫的函式
 def get_db_connection(database):
     conn = sqlite3.connect(database)
     conn.row_factory = sqlite3.Row
     return conn
 
+# 計算 BMI
 def calculate_bmi(weight, height_cm):
     height_m = height_cm / 100
     bmi = weight / (height_m ** 2)
     return bmi
 
+# 根據 BMI 推薦每日菜單
 def recommend_daily_menu(bmi):
     menus = {
         "underweight": {
@@ -381,7 +384,7 @@ def recommend_daily_menu(bmi):
         }
     
     }
-
+    # 根據 BMI 分類
     if bmi < 18.5:
         category = "underweight"
     elif 18.5 <= bmi < 24:
@@ -396,16 +399,31 @@ def recommend_daily_menu(bmi):
         for meal, options in menus[category].items()
     }
 
-    menu = (
-        f"🥗 **每日菜單建議（{'體重過輕' if category == 'underweight' else '正常體重' if category == 'normal' else '過重' if category == 'overweight' else '肥胖'}）**\n"
-        f"• 早餐：{selected_menu['breakfast']}\n"
-        f"• 午餐：{selected_menu['lunch']}\n"
-        f"• 晚餐：{selected_menu['dinner']}\n"
+    menu = [
+        f"🥗 **每日菜單建議（{'體重過輕' if category == 'underweight' else '正常體重' if category == 'normal' else '過重' if category == 'overweight' else '肥胖'}）**",
+        f"• 早餐：{selected_menu['breakfast']}",
+        f"• 午餐：{selected_menu['lunch']}",
+        f"• 晚餐：{selected_menu['dinner']}",
         f"• 點心：{selected_menu['snack']}"
-    )
-    return menu
+    ]
+    
+    # 使用 FlexSendMessage 發送格式化的每日菜單
+    contents = {
+        "type": "bubble",
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "sm",
+            "contents": [
+                {"type": "text", "text": "每日菜單建議", "weight": "bold", "size": "xl"},
+                *[{"type": "text", "text": item, "size": "sm", "color": "#555555"} for item in menu]
+            ]
+        }
+    }
 
-# 處理飲食指導
+    return FlexSendMessage(alt_text="每日菜單建議", contents=contents)
+
+# 處理飲食指導的主函式
 def handle_diet_guidance(event, line_bot_api, database):
     user_id = event.source.user_id
 
@@ -417,12 +435,8 @@ def handle_diet_guidance(event, line_bot_api, database):
 
     if record:
         bmi = record['bmi']
-        daily_menu = recommend_daily_menu(bmi)
-        reply_message = (
-            f"📊 您的 BMI：{bmi:.2f}\n"
-            f"🍽️ 每日菜單建議：\n{daily_menu}"
-        )
+        flex_message = recommend_daily_menu(bmi)  # 獲取 Flex 訊息
+        line_bot_api.reply_message(event.reply_token, flex_message)
     else:
         reply_message = "❌ 請先進行體態紀錄。"
-
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
