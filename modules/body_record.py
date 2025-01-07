@@ -215,15 +215,15 @@ def generate_weight_and_bmi_charts(user_id, database, num_records=10):
     
     # 繪製體重變化圖
     ax1.plot(times, weights, marker='o', linestyle='-', color='b')
-    ax1.set_title('體重變化趨勢')
-    ax1.set_xlabel('時間')
-    ax1.set_ylabel('體重 (kg)')
+    ax1.set_title('Weight trend over time')
+    ax1.set_xlabel('Time')
+    ax1.set_ylabel('Weight (kg)')
     ax1.tick_params(axis='x', rotation=45)
     
     # 繪製BMI變化圖
     ax2.plot(times, bmis, marker='o', linestyle='-', color='g')
-    ax2.set_title('BMI變化趨勢')
-    ax2.set_xlabel('時間')
+    ax2.set_title('BMI trend over time')
+    ax2.set_xlabel('Time')
     ax2.set_ylabel('BMI')
     ax2.tick_params(axis='x', rotation=45)
     

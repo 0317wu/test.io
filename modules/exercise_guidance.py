@@ -1,4 +1,5 @@
 from flask import url_for
+from werkzeug.utils import secure_filename
 from linebot.models import FlexSendMessage
 
 def create_plan_item(title, description, url):
@@ -33,16 +34,13 @@ def create_plan_item(title, description, url):
         ]
     }
 
-
-
 def show_exercise_guidance(event, line_bot_api):
     flex_message = FlexSendMessage(
         alt_text="運動指導選單",
         contents={
             "type": "carousel",
             "contents": [
-                
-                create_guidance_bubble("📋 運動指導", "運動指導"),
+                create_guidance_bubble("📋 運動指導", "訓練計劃"),  # 修改為 "訓練計劃"
             ]
         }
     )
@@ -67,13 +65,11 @@ def create_guidance_bubble(title, text):
                 {
                     "type": "button",
                     "style": "primary",
-                    "action": {"type": "message", "label": "查看內容", "text": text}
+                    "action": {"type": "message", "label": "查看內容", "text": text}  # "訓練計劃"
                 }
             ]
         }
     }
-
-
 
 def show_training_plan_menu(event, line_bot_api):
     flex_message = FlexSendMessage(
@@ -115,7 +111,12 @@ def create_level_bubble(title, text):
     }
 
 def show_beginner_training_plan(event, line_bot_api):
-    image_url = url_for('serve_image', filename='beginner.jpeg', _external=True, _scheme='https')
+    try:
+        image_url = url_for('serve_image', filename='beginner.jpeg', _external=True, _scheme='https')
+    except Exception as e:
+        logger.error(f"Image generation error: {e}")
+        image_url = "https://example.com/default_image.jpeg"  # 替代圖片URL
+
     flex_message = FlexSendMessage(
         alt_text="初學者運動指導計劃",
         contents={
@@ -126,7 +127,7 @@ def show_beginner_training_plan(event, line_bot_api):
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover",
-                "action": {"type": "uri", "uri": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}
+                "action": {"type": "uri", "uri": "https://www.youtube.com/your_actual_video_link"}  # 替換為實際影片連結
             },
             "body": {
                 "type": "box",
@@ -151,8 +152,14 @@ def show_beginner_training_plan(event, line_bot_api):
         }
     )
     line_bot_api.reply_message(event.reply_token, flex_message)
+
 def show_intermediate_training_plan(event, line_bot_api):
-    image_url = url_for('serve_image', filename='Intermediate.jpeg', _external=True, _scheme='https')
+    try:
+        image_url = url_for('serve_image', filename='intermediate.jpeg', _external=True, _scheme='https')
+    except Exception as e:
+        logger.error(f"Image generation error: {e}")
+        image_url = "https://example.com/default_image.jpeg"  # 替代圖片URL
+
     flex_message = FlexSendMessage(
         alt_text="中級者運動指導計劃",
         contents={
@@ -163,7 +170,7 @@ def show_intermediate_training_plan(event, line_bot_api):
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover",
-                "action": {"type": "uri", "uri": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}
+                "action": {"type": "uri", "uri": "https://www.youtube.com/your_actual_video_link"}  # 替換為實際影片連結
             },
             "body": {
                 "type": "box",
@@ -190,7 +197,12 @@ def show_intermediate_training_plan(event, line_bot_api):
     line_bot_api.reply_message(event.reply_token, flex_message)
 
 def show_advanced_training_plan(event, line_bot_api):
-    image_url = url_for('serve_image', filename='senior.jpeg', _external=True, _scheme='https')
+    try:
+        image_url = url_for('serve_image', filename='senior.jpeg', _external=True, _scheme='https')  # 確保圖片檔名一致
+    except Exception as e:
+        logger.error(f"Image generation error: {e}")
+        image_url = "https://example.com/default_image.jpeg"  # 替代圖片URL
+
     flex_message = FlexSendMessage(
         alt_text="高級者運動指導計劃",
         contents={
@@ -201,7 +213,7 @@ def show_advanced_training_plan(event, line_bot_api):
                 "size": "full",
                 "aspectRatio": "20:13",
                 "aspectMode": "cover",
-                "action": {"type": "uri", "uri": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}
+                "action": {"type": "uri", "uri": "https://www.youtube.com/your_actual_video_link"}  # 替換為實際影片連結
             },
             "body": {
                 "type": "box",
@@ -226,4 +238,3 @@ def show_advanced_training_plan(event, line_bot_api):
         }
     )
     line_bot_api.reply_message(event.reply_token, flex_message)
-

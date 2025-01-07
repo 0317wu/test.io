@@ -2,22 +2,28 @@ import os
 from flask import Flask, request, abort, send_from_directory
 from dotenv import load_dotenv
 from linebot import LineBotApi, WebhookHandler
-from linebot.models import MessageEvent, TextMessage, FollowEvent, TextSendMessage, LocationMessage, ImageSendMessage
+from linebot.models import (
+    MessageEvent, TextMessage, FollowEvent, TextSendMessage,
+    LocationMessage, ImageSendMessage, TemplateSendMessage, ButtonsTemplate, PostbackAction
+)
 import logging
 import matplotlib.pyplot as plt
 import uuid
 
 # 引入模組
 from modules.diet_management import handle_diet_guidance
-from modules.exercise_goal import show_exercise_goal, show_fat_loss_plan, show_muscle_gain_plan, show_cardiovascular_plan
+from modules.exercise_goal import (
+    show_exercise_goal, show_fat_loss_plan,
+    show_muscle_gain_plan, show_cardiovascular_plan
+)
 from modules.body_record import (
     show_body_record_menu, prompt_body_record_input, handle_body_record_input,
-    show_body_records, handle_body_record_pagination ,get_db_connection  # 確保 handle_body_record_pagination 已被引入
+    show_body_records, handle_body_record_pagination, get_db_connection
 )
 from modules.exercise_guidance import (
     show_exercise_guidance, show_training_plan_menu,
-    
-    show_beginner_training_plan, show_intermediate_training_plan, show_advanced_training_plan
+    show_beginner_training_plan, show_intermediate_training_plan,
+    show_advanced_training_plan
 )
 
 # 載入環境變數  
@@ -35,7 +41,6 @@ DATABASE = 'user_body_data.db'
 user_states = {}
 
 # 初始化 Google Generative AI (Gemini)
-
 from google import generativeai
 # 加載 Google Generative AI API 金鑰
 google_api_key = os.getenv("GOOGLE_GENERATIVEAI_API_KEY")
@@ -62,7 +67,7 @@ def callback():
     try:
         handler.handle(body, signature)
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(f"Error handling request: {e}")
         abort(400)
     return 'OK'
 
@@ -96,7 +101,14 @@ def handle_message(event):
 
     # 根據使用者輸入呼叫對應功能
     if user_message == "開始":
-        main_menu = "🏋️‍♂️ 主選單：\n1️⃣ 運動目標\n2️⃣ 體態紀錄\n3️⃣ 運動指導\n4️⃣ AI 回答\n請輸入對應選項。"
+        main_menu = (
+            "🏋️‍♂️ 主選單：\n"
+            "1️⃣ 運動目標\n"
+            "2️⃣ 體態紀錄\n"
+            "3️⃣ 運動指導\n"
+            "4️⃣ AI 回答\n"
+            "請輸入對應選項。"
+        )
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=main_menu))
 
     elif user_message == "運動目標":
@@ -125,7 +137,7 @@ def handle_message(event):
             )
             line_bot_api.reply_message(event.reply_token, image_message)
         except Exception as e:
-            print(f"圖表生成錯誤: {e}")
+            logger.error(f"圖表生成錯誤: {e}")
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="⚠️ 體重和BMI變化圖表生成失敗。"))
 
     # 新增對「上一頁 / 下一頁」指令的處理
@@ -134,21 +146,21 @@ def handle_message(event):
     elif user_message == "體態紀錄下一頁":
         handle_body_record_pagination(event, "下一頁", line_bot_api, user_states, DATABASE)
 
-    elif user_message == "運動指導":
-        show_exercise_guidance(event, line_bot_api)
     elif user_message == "飲食管理":
         handle_diet_guidance(event, line_bot_api, DATABASE)
-    
+
     elif user_message in ["訓練計劃", "📋 訓練計劃"]:
         show_training_plan_menu(event, line_bot_api)
-    
-    elif user_message in ["初學者訓練計劃", "👶 初學者訓練計劃"]:
+    elif user_message == "運動指導":
+        show_exercise_guidance(event, line_bot_api)
+
+    elif user_message in [ "查看初學者訓練計劃", "初學者運動指導計劃"]:
         show_beginner_training_plan(event, line_bot_api)
-    elif user_message in ["中級者訓練計劃", "💪 中級者訓練計劃"]:
+    elif user_message in ["中級者訓練計劃", "中級者運動指導計劃"]:
         show_intermediate_training_plan(event, line_bot_api)
-    elif user_message in ["高級者訓練計劃", "🔥 高級者訓練計劃"]:
+    elif user_message in ["高級者訓練計劃", "高級者運動指導計劃"]:
         show_advanced_training_plan(event, line_bot_api)
-    
+
     # 新增 AI 回答功能
     elif user_message.startswith("AI "):
         user_query = user_message[3:].strip()
@@ -159,10 +171,15 @@ def handle_message(event):
                 response = generativeai.GenerativeModel('gemini-2.0-flash-exp').generate_content(user_query)
                 reply_text = response.text
             except Exception as e:
-                print(f"Gemini Error: {e}")
+                logger.error(f"Gemini Error: {e}")
                 reply_text = "❌ 發生錯誤，請稍後再試。"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
-    
+
+    else:
+        # 處理未定義的指令
+        default_reply = "抱歉，我不太明白您的意思。請選擇主選單中的選項。"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=default_reply))
+
 
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location_message(event):
@@ -179,8 +196,10 @@ def generate_weight_and_bmi_charts(user_id, database, num_records=10):
         # 從資料庫獲取數據
         with get_db_connection(database) as conn:
             c = conn.cursor()
-            c.execute("SELECT time, weight, bmi FROM body_data WHERE user_id = ? ORDER BY time ASC LIMIT ?", 
-                     (user_id, num_records))
+            c.execute(
+                "SELECT time, weight, bmi FROM body_data WHERE user_id = ? ORDER BY time ASC LIMIT ?", 
+                (user_id, num_records)
+            )
             data = c.fetchall()
 
         if not data:

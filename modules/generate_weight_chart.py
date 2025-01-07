@@ -1,4 +1,7 @@
+import matplotlib
+matplotlib.use('Agg')  # 使用非交互式後端
 import matplotlib.pyplot as plt
+
 import uuid
 import os
 from linebot.models import ImageSendMessage
@@ -21,9 +24,9 @@ def generate_weight_chart(user_id, database, num_records=10):
     
     plt.figure(figsize=(10, 5))
     plt.plot(times, weights, marker='o', linestyle='-', color='b')
-    plt.title('最近體重變化')
-    plt.xlabel('時間')
-    plt.ylabel('體重 (kg)')
+    plt.title('Weight trend over time')
+    plt.xlabel('Time')
+    plt.ylabel('Weight (kg)')
     plt.xticks(rotation=45)
     plt.tight_layout()
     
