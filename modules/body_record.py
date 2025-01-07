@@ -1,8 +1,18 @@
 # modules/body_record.py
+import os
 import sqlite3
 from datetime import datetime
 from contextlib import contextmanager
-from linebot.models import TextSendMessage, TemplateSendMessage, ButtonsTemplate, FlexSendMessage
+from linebot.models import (
+    TextSendMessage, TemplateSendMessage, ButtonsTemplate, 
+    FlexSendMessage, ImageSendMessage
+)
+import matplotlib.pyplot as plt
+import uuid
+
+# 確保 img 目錄存在
+if not os.path.exists('img'):
+    os.makedirs('img')
 
 PAGE_SIZE = 10
 
@@ -43,6 +53,11 @@ def show_body_record_menu(event, line_bot_api):
                         "type": "button",
                         "style": "primary",
                         "action": {"type": "message", "label": "📚 查詢紀錄", "text": "查詢紀錄"}
+                    },
+                    {
+                        "type": "button",
+                        "style": "primary",
+                        "action": {"type": "message", "label": "📈 顯示體重圖表", "text": "顯示體重圖表"}
                     }
                 ]
             }
@@ -116,27 +131,6 @@ def handle_body_record_input(event, line_bot_api, database, weight, height):
             TextSendMessage(text="❌ 體態紀錄失敗，請稍後再試。")
         )
 
-# 範例主程式
-if __name__ == "__main__":
-    # 假設有以下參數
-    class MockEvent:
-        class Source:
-            user_id = "U1234567890"
-        source = Source()
-        reply_token = "dummy_token"
-
-    class MockLineBotAPI:
-        def reply_message(self, reply_token, messages):
-            print(f"Reply sent to {reply_token}: {messages}")
-
-    event = MockEvent()
-    line_bot_api = MockLineBotAPI()
-    database = r'D:\User\Downloads\test.io\test.io\user_body_data.db'
-    weight = 70.5  # 體重（公斤）
-    height = 175.0  # 身高（公分）
-
-    handle_body_record_input(event, line_bot_api, database, weight, height)
-
 def show_body_records(event, line_bot_api, database, page=1, user_states=None):
     user_id = event.source.user_id
     offset = (page - 1) * PAGE_SIZE
@@ -174,6 +168,8 @@ def show_body_records(event, line_bot_api, database, page=1, user_states=None):
     if user_states is not None:
         user_states[user_id] = {'state': 'viewing_body_records', 'page': page}
 
+    messages = [TextSendMessage(text=reply_message)]
+    
     if actions:
         buttons_template = TemplateSendMessage(
             alt_text="體態紀錄導航",
@@ -182,9 +178,78 @@ def show_body_records(event, line_bot_api, database, page=1, user_states=None):
                 actions=actions
             )
         )
-        line_bot_api.reply_message(event.reply_token, [TextSendMessage(text=reply_message), buttons_template])
-    else:
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+        messages.append(buttons_template)
+
+    # 發送體重變化圖表
+    try:
+        image_url = generate_weight_and_bmi_charts(user_id, database)
+        image_message = ImageSendMessage(
+            original_content_url=image_url,
+            preview_image_url=image_url
+        )
+        messages.append(image_message)
+    except Exception as e:
+        print(f"Chart generation error: {e}")
+        messages.append(TextSendMessage(text="⚠️ 體重變化圖表生成失敗。"))
+
+    line_bot_api.reply_message(event.reply_token, messages)
+
+def generate_weight_and_bmi_charts(user_id, database, num_records=10):
+    print("開始生成體重和BMI變化圖表...")
+    with get_db_connection(database) as conn:
+        c = conn.cursor()
+        # 取得最近的 num_records 條紀錄，按時間升序排列
+        c.execute("SELECT time, weight, bmi FROM body_data WHERE user_id = ? ORDER BY time ASC LIMIT ?", 
+                 (user_id, num_records))
+        data = c.fetchall()
+
+    if not data:
+        raise ValueError("沒有可用的數據來生成圖表。")
+
+    times = [record['time'] for record in data]
+    weights = [record['weight'] for record in data]
+    bmis = [record['bmi'] for record in data]
+
+    # 創建包含兩個子圖的圖表
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+    
+    # 繪製體重變化圖
+    ax1.plot(times, weights, marker='o', linestyle='-', color='b')
+    ax1.set_title('體重變化趨勢')
+    ax1.set_xlabel('時間')
+    ax1.set_ylabel('體重 (kg)')
+    ax1.tick_params(axis='x', rotation=45)
+    
+    # 繪製BMI變化圖
+    ax2.plot(times, bmis, marker='o', linestyle='-', color='g')
+    ax2.set_title('BMI變化趨勢')
+    ax2.set_xlabel('時間')
+    ax2.set_ylabel('BMI')
+    ax2.tick_params(axis='x', rotation=45)
+    
+    # 添加BMI區間參考線
+    ax2.axhline(y=18.5, color='r', linestyle='--', alpha=0.5)
+    ax2.axhline(y=24, color='r', linestyle='--', alpha=0.5)
+    ax2.fill_between(times, [18.5]*len(times), [24]*len(times), alpha=0.2, color='g')
+    
+    plt.tight_layout()
+
+    # 生成唯一的檔名
+    filename = f"{user_id}_{uuid.uuid4().hex}.png"
+    img_path = os.path.join('img', filename)
+    plt.savefig(img_path)
+    plt.close()
+
+    print(f"圖表已保存至 {img_path}")
+
+    # 生成圖片的URL
+    server_url = os.getenv("SERVER_URL")
+    if not server_url:
+        raise ValueError("SERVER_URL 環境變數未設置。")
+
+    image_url = f"{server_url}/img/{filename}"
+    print(f"圖表的URL：{image_url}")
+    return image_url
 
 def handle_body_record_pagination(event, direction, line_bot_api, user_states, database):
     user_id = event.source.user_id

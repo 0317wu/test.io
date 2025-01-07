@@ -12,4 +12,4 @@ generativeai.configure(api_key=api_key)
 
 # 生成內容
 response = generativeai.GenerativeModel('gemini-2.0-flash-exp').generate_content('妳是誰？')
-print(response.text);
+print(response.text)
