@@ -9,6 +9,11 @@ from linebot.models import (
 import logging
 import matplotlib.pyplot as plt
 import uuid
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.date import DateTrigger
+from datetime import datetime
+import sqlite3
+import atexit
 
 # 引入模組
 from modules.diet_management import handle_diet_guidance
@@ -36,6 +41,7 @@ handler = WebhookHandler(os.getenv('LINE_CHANNEL_SECRET'))
 
 # 資料庫檔案位置
 DATABASE = 'user_body_data.db'
+CREATEALARM_DB = 'createalarm.db'
 
 # 儲存使用者狀態
 user_states = {}
@@ -53,6 +59,13 @@ if not os.path.exists('img'):
 # 設定日誌
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# 初始化 Scheduler
+scheduler = BackgroundScheduler()
+scheduler.start()
+
+# 確保應用結束時關閉 Scheduler
+atexit.register(lambda: scheduler.shutdown())
 
 @app.route('/img/<filename>')
 def serve_image(filename):
@@ -98,6 +111,31 @@ def handle_message(event):
             except ValueError:
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ 請按照正確格式輸入，例如：80 180"))
             return
+        elif state.get('state') == 'awaiting_reminder_input':
+            if user_message.lower() in ["取消", "返回"]:
+                del user_states[user_id]
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ 已取消提醒設定。"))
+                return
+            try:
+                # 假設使用者輸入格式為 "YYYY-MM-DD HH:MM 訊息"
+                parts = user_message.split(' ', 2)
+                if len(parts) < 3:
+                    raise ValueError("格式錯誤")
+                reminder_time_str = f"{parts[0]} {parts[1]}"
+                reminder_time = datetime.strptime(reminder_time_str, "%Y-%m-%d %H:%M")
+                message = parts[2]
+                
+                # 儲存提醒到資料庫
+                save_reminder(user_id, reminder_time, message)
+                
+                # 排程提醒
+                schedule_reminder(user_id, reminder_time, message)
+                
+                del user_states[user_id]
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"✅ 提醒已設定在 {reminder_time_str}。"))
+            except ValueError:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ 格式錯誤。請按照格式「YYYY-MM-DD HH:MM 訊息」輸入，例如：2025-01-08 17:00 喝水"))
+            return
 
     # 根據使用者輸入呼叫對應功能
     if user_message == "開始":
@@ -107,6 +145,7 @@ def handle_message(event):
             "2️⃣ 體態紀錄\n"
             "3️⃣ 運動指導\n"
             "4️⃣ AI 回答\n"
+            "5️⃣ 設定提醒\n"  # 新增提醒選項
             "請輸入對應選項。"
         )
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=main_menu))
@@ -160,6 +199,11 @@ def handle_message(event):
         show_intermediate_training_plan(event, line_bot_api)
     elif user_message in ["高級者訓練計劃", "高級者運動指導計劃"]:
         show_advanced_training_plan(event, line_bot_api)
+
+    # 新增提醒設定處理
+    elif user_message == "設定提醒":
+        user_states[user_id] = {'state': 'awaiting_reminder_input'}
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="📅 請輸入提醒時間和訊息，格式為「YYYY-MM-DD HH:MM 訊息」，例如：2025-01-08 17:00 喝水。輸入「取消」以取消。"))
 
     # 新增 AI 回答功能
     elif user_message.startswith("AI "):
@@ -246,6 +290,49 @@ def generate_weight_and_bmi_charts(user_id, database, num_records=10):
     except Exception as e:
         logger.error(f"生成圖表時發生錯誤：{str(e)}")
         raise
+
+def save_reminder(user_id, reminder_time, message):
+    conn = sqlite3.connect(CREATEALARM_DB)
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO reminders (user_id, reminder_time, message)
+        VALUES (?, ?, ?)
+    ''', (user_id, reminder_time.isoformat(), message))
+    conn.commit()
+    conn.close()
+    logger.info(f"已儲存提醒：用戶 {user_id}, 時間 {reminder_time}, 訊息 '{message}'")
+
+def send_reminder(user_id, message):
+    try:
+        line_bot_api.push_message(user_id, TextSendMessage(text=f"⏰ 提醒：{message}"))
+        logger.info(f"已發送提醒給用戶 {user_id}: {message}")
+    except Exception as e:
+        logger.error(f"發送提醒時出錯：{e}")
+
+def schedule_reminder(user_id, reminder_time, message):
+    trigger = DateTrigger(run_date=reminder_time)
+    job_id = f"reminder_{user_id}_{uuid.uuid4().hex}"
+    scheduler.add_job(send_reminder, trigger, args=[user_id, message], id=job_id)
+    logger.info(f"已排程提醒：用戶 {user_id}, 時間 {reminder_time}, 訊息 '{message}', Job ID: {job_id}")
+
+def load_and_schedule_existing_reminders():
+    conn = sqlite3.connect(CREATEALARM_DB)
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT user_id, reminder_time, message FROM reminders
+        WHERE datetime(reminder_time) > datetime('now')
+    ''')
+    reminders = cursor.fetchall()
+    conn.close()
+    
+    for reminder in reminders:
+        user_id, reminder_time_str, message = reminder
+        reminder_time = datetime.fromisoformat(reminder_time_str)
+        schedule_reminder(user_id, reminder_time, message)
+    logger.info("已載入並排程所有現有的提醒。")
+
+# 在應用啟動後調用
+load_and_schedule_existing_reminders()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

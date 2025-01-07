@@ -157,7 +157,7 @@ def show_intermediate_training_plan(event, line_bot_api):
     try:
         image_url = url_for('serve_image', filename='intermediate.jpeg', _external=True, _scheme='https')
     except Exception as e:
-        logger.error(f"Image generation error: {e}")
+        
         image_url = "https://example.com/default_image.jpeg"  # 替代圖片URL
 
     flex_message = FlexSendMessage(
@@ -200,7 +200,6 @@ def show_advanced_training_plan(event, line_bot_api):
     try:
         image_url = url_for('serve_image', filename='senior.jpeg', _external=True, _scheme='https')  # 確保圖片檔名一致
     except Exception as e:
-        logger.error(f"Image generation error: {e}")
         image_url = "https://example.com/default_image.jpeg"  # 替代圖片URL
 
     flex_message = FlexSendMessage(
