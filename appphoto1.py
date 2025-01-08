@@ -277,7 +277,7 @@ def handle_message(event):
             "5️⃣ AI 回答(輸入AI 想問的東西)\n"
             "6️⃣提醒\n"
             "7️⃣飲食紀錄\n"
-            "8️⃣AI圖片教學\n"
+            "8️⃣AI圖片辨識\n"
             "請輸入對應選項。"
         )
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=main_menu))
