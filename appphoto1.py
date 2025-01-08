@@ -306,6 +306,7 @@ def handle_message(event):
             "6️⃣ 提醒\n"
             "7️⃣ 飲食紀錄\n"
             "8️⃣ AI圖片辨識\n"
+            "9️⃣ 健身房查詢\n"
             "請輸入對應選項。"
         )
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=main_menu))
