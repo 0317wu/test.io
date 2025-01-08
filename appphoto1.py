@@ -37,7 +37,7 @@ from modules.exercise_guidance import (
     show_beginner_training_plan, show_intermediate_training_plan,
     show_advanced_training_plan
 )
-from modules.food_record import save_food_record, get_diet_records, initialize_database, recognize_food_items,save_manual_food_record
+from modules.food_record import save_food_record, get_diet_records, initialize_database, recognize_food_items
 load_dotenv()
 app = Flask(__name__)
 
@@ -54,7 +54,8 @@ FOOD_RECORD_DB = 'food_record.db'   # 用於飲食紀錄
 user_states = {}
 AWAITING_BODY_RECORD_INPUT = 'awaiting_body_record_input'
 AWAITING_FOOD_IMAGE = 'awaiting_food_image'
-
+AWAITING_REMINDER_TIME = 'awaiting_reminder_time'
+AWAITING_REMINDER_MESSAGE = 'awaiting_reminder_message'
 # 初始化 Google Generative AI (Gemini)
 from google import generativeai
 # 加載 Google Generative AI API 金鑰
@@ -265,6 +266,33 @@ def handle_message(event):
             # 當使用者處於等待上傳食物圖片狀態時，提醒其上傳圖片
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="🍽️ 請上傳您剛剛吃的食物照片。或者輸入「取消」以取消。"))
             return
+        elif state == AWAITING_REMINDER_TIME:
+            # 處理提醒時間的輸入
+            try:
+                # 假設使用者輸入的時間格式為 'YYYY-MM-DD HH:MM'
+                reminder_time = datetime.strptime(user_message, '%Y-%m-%d %H:%M')
+                user_states[user_id]['reminder_time'] = reminder_time
+                user_states[user_id]['state'] = AWAITING_REMINDER_MESSAGE
+                prompt = "請輸入提醒訊息內容。"
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=prompt))
+            except ValueError:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ 時間格式錯誤。請使用 'YYYY-MM-DD HH:MM' 格式。"))
+            return
+        elif state == AWAITING_REMINDER_MESSAGE:
+            # 處理提醒訊息的輸入
+            reminder_time = user_states[user_id].get('reminder_time')
+            reminder_message = user_message
+            try:
+                save_reminder(user_id, reminder_time, reminder_message)
+                schedule_reminder(user_id, reminder_time, reminder_message)
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"✅ 提醒已設定於 {reminder_time.strftime('%Y-%m-%d %H:%M')}，內容：{reminder_message}"))
+            except Exception as e:
+                logger.error(f"設定提醒時出錯：{e}")
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ 設定提醒時發生錯誤，請稍後再試。"))
+            finally:
+                del user_states[user_id]
+            return
+
 
     # 主選單和其他指令
     if user_message == "開始":
@@ -275,9 +303,9 @@ def handle_message(event):
             "3️⃣ 運動目標\n"
             "4️⃣ 運動指導\n"
             "5️⃣ AI 回答(輸入AI 想問的東西)\n"
-            "6️⃣提醒\n"
-            "7️⃣飲食紀錄\n"
-            "8️⃣AI圖片辨識\n"
+            "6️⃣ 提醒\n"
+            "7️⃣ 飲食紀錄\n"
+            "8️⃣ AI圖片辨識\n"
             "請輸入對應選項。"
         )
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=main_menu))
@@ -313,13 +341,15 @@ def handle_message(event):
         handle_body_record_pagination(event, "上一頁", line_bot_api, user_states, DATABASE)
     elif user_message == "體態紀錄下一頁":
         handle_body_record_pagination(event, "下一頁", line_bot_api, user_states, DATABASE)
-
+    elif user_message == "提醒":
+        user_states[user_id] = {'state': AWAITING_REMINDER_TIME}
+        prompt = "請輸入提醒時間，格式為 'YYYY-MM-DD HH:MM'。例如：2025-01-10 09:00"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=prompt))
     elif user_message == "飲食紀錄":
         diet_menu = (
             "🍎 飲食紀錄：\n"
             "1️⃣ 記錄食物\n"
-            "2️⃣ 手動記錄食物\n"
-            "3️⃣ 查看飲食紀錄\n"
+            "2️⃣ 查看飲食紀錄\n"
             "請輸入對應選項。"
         )
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=diet_menu))
@@ -327,8 +357,7 @@ def handle_message(event):
     elif user_message == "記錄食物":
         user_states[user_id] = {'state': AWAITING_FOOD_IMAGE}
         prompt_food_image_input(event, line_bot_api)
-    elif user_message == "手動記錄食物":
-        save_manual_food_record(event, line_bot_api)
+
 
     elif user_message == "查看飲食紀錄":
         try:
