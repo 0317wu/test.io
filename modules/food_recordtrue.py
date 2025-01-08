@@ -216,32 +216,3 @@ def get_diet_records(user_id, limit=10, offset=0):
     except Exception as e:
         logger.error(f"獲取用戶 {user_id} 的飲食紀錄時出錯: {e}")
         raise
-def save_manual_food_record(user_id, food_name, calories):
-    """
-    手動儲存食物項目及其熱量資訊到飲食紀錄。
-    
-    參數:
-    - user_id (str): LINE 使用者 ID
-    - food_name (str): 食物名稱
-    - calories (float): 熱量
-    """
-    try:
-        if not isinstance(food_name, str) or not isinstance(calories, (int, float)):
-            logger.error("food_name 必須是字串，calories 必須是數字。")
-            return
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        timestamp = datetime.now().isoformat()
-
-        cursor.execute('''
-            INSERT INTO diet_records (user_id, food_item, calories, timestamp)
-            VALUES (?, ?, ?, ?)
-        ''', (user_id, food_name, calories, timestamp))
-
-        conn.commit()
-        conn.close()
-        logger.info(f"已手動儲存用戶 {user_id} 的食物紀錄：{food_name}, {calories} kcal")
-    except Exception as e:
-        logger.error(f"手動儲存用戶 {user_id} 的食物紀錄時出錯: {e}")
-        raise
