@@ -82,8 +82,8 @@ atexit.register(lambda: scheduler.shutdown())
 # 新增從伺服器提供圖片的路由
 @app.route('/img/<filename>')
 def serve_image(filename):
-    return send_from_directory('img', filename)
-
+    return send_from_directory(r'd:\\User\\Desktop\\BMICHART\\img', filename)
+    
 @app.route("/callback", methods=['POST'])
 def callback():
     # 驗證 LINE 平台的請求
